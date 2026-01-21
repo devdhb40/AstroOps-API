@@ -7,6 +7,8 @@ import { CacheService } from '@/shared/libs/cache/cache.service';
 
 @Injectable()
 export class ApodService {
+  private readonly CACHE_TTL = 21600; // 6 horas
+
   constructor(
     private readonly apodRepository: ApodRepository,
     private readonly cache: CacheService,
@@ -14,13 +16,41 @@ export class ApodService {
 
   async getApod(query: ApodQueryDto): Promise<ApodInterface[]> {
     const params = this.applyDefaults(query);
-    console.log(params);
+    const cacheKey = this.buildCacheKey(params);
+
+    const cached = await this.cache.get<ApodInterface[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     const apod = await this.apodRepository.getApod(params);
 
     if (!apod || (Array.isArray(apod) && apod.length === 0)) {
       throw new NotFoundException('error.apod.not_found');
     }
-    return Array.isArray(apod) ? apod : [apod];
+
+    const result = Array.isArray(apod) ? apod : [apod];
+    await this.cache.set(cacheKey, result, this.CACHE_TTL);
+
+    return result;
+  }
+
+  private buildCacheKey(params: ApodQueryDto): string {
+    const parts: string[] = ['apod'];
+
+    if (params.date) {
+      parts.push(`date:${params.date}`);
+    } else if (params.startDate) {
+      parts.push(`range:${params.startDate}:${params.endDate || ''}`);
+    } else if (params.count) {
+      parts.push(`count:${params.count}`);
+    }
+
+    if (params.thumbs) {
+      parts.push('thumbs:true');
+    }
+
+    return parts.join(':');
   }
 
   private applyDefaults(query: ApodQueryDto): ApodQueryDto {
