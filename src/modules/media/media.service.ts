@@ -15,7 +15,7 @@ export class MediaService {
     private readonly cache: CacheService,
   ) {}
 
-  async search(query: MediaQueryDto): Promise<MediaSearchResponseDto> {
+  async search(query: MediaQueryDto): Promise<{ data: MediaSearchResponseDto; cached: boolean }> {
     if (!query.q || query.q.trim().length === 0) {
       throw new BadRequestException('error.media.query_required');
     }
@@ -27,9 +27,9 @@ export class MediaService {
     const params = this.applyDefaults(query);
     const cacheKey = this.buildCacheKey(params);
 
-    const cached = await this.cache.get<Omit<MediaSearchResponseDto, 'cached'>>(cacheKey);
+    const cached = await this.cache.get<MediaSearchResponseDto>(cacheKey);
     if (cached) {
-      return { ...cached, cached: true };
+      return { data: cached, cached: true };
     }
 
     const rawResponse = await this.mediaRepository.search(params);
@@ -49,7 +49,7 @@ export class MediaService {
 
     await this.cache.set(cacheKey, result, this.CACHE_TTL);
 
-    return { ...result, cached: false };
+    return { data: result, cached: false };
   }
 
   private buildCacheKey(params: MediaQueryDto): string {

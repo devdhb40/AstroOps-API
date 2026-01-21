@@ -77,11 +77,5 @@ export class MediaSearchResponseDto extends PaginationResponse<MediaItemDto> {
     example: 152,
   })
   totalHits: number;
-
-  @ApiProperty({
-    description: 'Indica se os dados foram retornados do cache',
-    example: false,
-  })
-  cached: boolean;
 }
 

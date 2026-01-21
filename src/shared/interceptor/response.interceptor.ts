@@ -116,22 +116,49 @@ export class ResponseInterceptor<Data = any> implements NestInterceptor {
           options?: MapperOptions;
         }>(MAPPER_KEY, [ctx.getHandler(), ctx.getClass()]);
 
+        let meta: Record<string, any> | undefined;
+        let responseData = data;
+
+        if (isObject(data) && 'meta' in data) {
+          meta = data.meta;
+          responseData = { ...data };
+          delete responseData.meta;
+        }
+
+        if (isObject(responseData) && responseData.data && Array.isArray(responseData.data)) {
+          responseData = responseData.data;
+        }
+
         if (metadata?.response) {
-          if (Array.isArray(data)) {
-            data = data.map((item) => mapper(metadata.response, item, metadata.options));
-          } else if (data?.entities && Array.isArray(data.entities)) {
-            data = {
-              ...data,
-              entities: data.entities.map((item: any) =>
+          if (Array.isArray(responseData)) {
+            responseData = responseData.map((item) => mapper(metadata.response, item, metadata.options));
+          } else if (isObject(responseData) && responseData.entities && Array.isArray(responseData.entities)) {
+            responseData = {
+              ...responseData,
+              entities: responseData.entities.map((item: any) =>
                 mapper(metadata.response, item, metadata.options)
               ),
             };
+          } else if (isObject(responseData) && responseData.data) {
+            const nestedData = responseData.data;
+            if (Array.isArray(nestedData)) {
+              responseData = nestedData.map((item: any) =>
+                mapper(metadata.response, item, metadata.options)
+              );
+            } else {
+              responseData = mapper(metadata.response, nestedData, metadata.options);
+            }
           } else {
-            data = mapper(metadata.response, data, metadata.options);
+            responseData = mapper(metadata.response, responseData, metadata.options);
           }
         }
 
-        return { success: true, data } as ApiBaseResponse<Data>;
+        const response: ApiBaseResponse<Data> = { success: true, data: responseData };
+        if (meta !== undefined) {
+          response.meta = meta;
+        }
+
+        return response;
       }),
 
       catchError((error) => {

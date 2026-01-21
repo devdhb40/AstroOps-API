@@ -15,7 +15,6 @@ export class ApodRepository {
     const response = await this.httpService.get<
       ApodInterface | ApodInterface[]
     >(url);
-
     return Array.isArray(response) ? response : [response];
   }
 

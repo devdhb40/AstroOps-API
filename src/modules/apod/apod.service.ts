@@ -14,13 +14,13 @@ export class ApodService {
     private readonly cache: CacheService,
   ) {}
 
-  async getApod(query: ApodQueryDto): Promise<ApodInterface[]> {
+  async getApod(query: ApodQueryDto): Promise<{ items: ApodInterface[]; cached: boolean }> {
     const params = this.applyDefaults(query);
     const cacheKey = this.buildCacheKey(params);
 
     const cached = await this.cache.get<ApodInterface[]>(cacheKey);
     if (cached) {
-      return cached;
+      return { items: cached, cached: true };
     }
 
     const apod = await this.apodRepository.getApod(params);
@@ -32,7 +32,7 @@ export class ApodService {
     const result = Array.isArray(apod) ? apod : [apod];
     await this.cache.set(cacheKey, result, this.CACHE_TTL);
 
-    return result;
+    return { items: result, cached: false };
   }
 
   private buildCacheKey(params: ApodQueryDto): string {

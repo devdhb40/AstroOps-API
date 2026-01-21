@@ -18,6 +18,13 @@ export class ApiBaseResponse<T> {
   data?: T | PaginationResponse<T>;
 
   @ApiPropertyOptional({
+    description: 'Metadata about the response (e.g., cache status).',
+    type: Object,
+    additionalProperties: true,
+  })
+  meta?: Record<string, any>;
+
+  @ApiPropertyOptional({
     description: 'Payload returned by the endpoint when `success` is `false`. ',
     type: () => ApiErrorResponse,
   })

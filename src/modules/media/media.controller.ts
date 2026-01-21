@@ -23,7 +23,13 @@ export class MediaController {
       'Use os parâmetros `page` e `limit` para navegar pelos resultados.',
   })
   @BaseResponse(MediaItemDto, { paginated: true })
-  async search(@Query() query: MediaQueryDto): Promise<MediaSearchResponseDto> {
-    return this.mediaService.search(query);
+  async search(@Query() query: MediaQueryDto) {
+    const result = await this.mediaService.search(query);
+    return {
+      data: result.data,
+      meta: {
+        cached: result.cached,
+      },
+    };
   }
 }

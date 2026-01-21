@@ -49,3 +49,11 @@ export class ApodResponseDto {
   })
   copyright: string;
 }
+
+export class ApodListResponseDto {
+  @ApiProperty({
+    description: 'Lista de APODs',
+    type: [ApodResponseDto],
+  })
+  items: ApodResponseDto[];
+}
