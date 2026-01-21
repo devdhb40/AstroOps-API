@@ -16,7 +16,7 @@ export class SwaggerAuthMiddleware implements NestMiddleware {
     const authHeader = req.headers.authorization;
     if (!authHeader) getCredentials(res);
 
-    const [type, credentials] = authHeader.split(' ');
+    const [type, credentials] = authHeader?.split(' ') ?? [];
     if (type !== 'Basic' || !credentials) getCredentials(res);
 
     const decoded = Buffer.from(credentials, 'base64').toString('utf-8');

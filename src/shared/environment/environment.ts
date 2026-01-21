@@ -12,6 +12,10 @@ export const environment = {
     port: env.PORT || 3000,
     frontendUrl: env.FRONTEND_URL || 'http://localhost:3002',
   },
+  nasa: {
+    url: env.NASA_URL || 'https://api.nasa.gov',
+    apiKey: env.NASA_API_KEY || 'DEMO_KEY',
+  },
   swagger: {
     user: env.SWAGGER_USER || '',
     password: env.SWAGGER_PASSWORD || '',
